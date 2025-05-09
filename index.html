@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notion風エディタ（削除機能付き）</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f0f0;
+      padding: 2rem;
+    }
+    #editor {
+      background: white;
+      padding: 1rem;
+      border: 1px solid #ccc;
+      min-height: 400px;
+    }
+    .block {
+      margin-bottom: 1rem;
+      position: relative;
+      padding-left: 2rem;
+      background: #fff;
+      transition: background 0.2s ease;
+    }
+    .block:hover {
+      background-color: #f5f5f5;
+    }
+    .handle {
+      position: absolute;
+      left: 0;
+      top: 0.2rem;
+      cursor: move;
+      color: #aaa;
+    }
+    .delete-btn {
+      position: absolute;
+      right: 0.5rem;
+      top: 0.2rem;
+      cursor: pointer;
+      color: #c00;
+      font-size: 1.2rem;
+    }
+    .toolbar {
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    .toolbar button {
+      padding: 0.4rem 0.8rem;
+      margin: 0 0.3rem;
+      font-size: 0.9rem;
+      background: #6c5ce7;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.5rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.4rem;
+    }
+    td input {
+      width: 100%;
+      border: none;
+      background: transparent;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Notion風エディタ（ブロック削除付き）</h1>
+
+<div class="toolbar">
+  <button onclick="addBlock('text')">＋ テキスト</button>
+  <button onclick="addBlock('todo')">＋ ToDo</button>
+  <button onclick="addBlock('table')">＋ 表</button>
+</div>
+
+<div id="editor"></div>
+
+<script>
+  const editor = document.getElementById("editor");
+
+  function addBlock(type) {
+    const block = document.createElement("div");
+    block.className = "block";
+    block.setAttribute("draggable", true);
+
+    const handle = document.createElement("span");
+    handle.className = "handle";
+    handle.innerHTML = "⋮⋮";
+    block.appendChild(handle);
+
+    const del = document.createElement("span");
+    del.className = "delete-btn";
+    del.innerHTML = "✕";
+    del.onclick = () => block.remove();
+    block.appendChild(del);
+
+    if (type === "text") {
+      const div = document.createElement("div");
+      div.contentEditable = true;
+      div.innerText = "新しいテキストを入力...";
+      block.appendChild(div);
+    }
+
+    if (type === "todo") {
+      const label = document.createElement("label");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      const span = document.createElement("span");
+      span.contentEditable = true;
+      span.innerText = "やることを入力";
+      label.appendChild(checkbox);
+      label.appendChild(span);
+      block.appendChild(label);
+    }
+
+    if (type === "table") {
+      const table = document.createElement("table");
+      table.innerHTML = \`
+        <thead><tr><th>項目</th><th>内容</th></tr></thead>
+        <tbody><tr>
+          <td><input type="text" placeholder="例: 日付" /></td>
+          <td><input type="text" placeholder="例: 施術内容" /></td>
+        </tr></tbody>
+      \`;
+      block.appendChild(table);
+    }
+
+    editor.appendChild(block);
+  }
+
+  // 並び替え対応
+  editor.addEventListener("dragstart", e => {
+    e.dataTransfer.setData("text/plain", null);
+    e.target.classList.add("dragging");
+  });
+
+  editor.addEventListener("dragend", e => {
+    e.target.classList.remove("dragging");
+  });
+
+  editor.addEventListener("dragover", e => {
+    e.preventDefault();
+    const dragging = document.querySelector(".dragging");
+    const afterElement = getDragAfterElement(editor, e.clientY);
+    if (afterElement == null) {
+      editor.appendChild(dragging);
+    } else {
+      editor.insertBefore(dragging, afterElement);
+    }
+  });
+
+  function getDragAfterElement(container, y) {
+    const elements = [...container.querySelectorAll(".block:not(.dragging)")];
+    return elements.reduce((closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      return offset < 0 && offset > closest.offset ? { offset, element: child } : closest;
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+  }
+</script>
+
+</body>
+</html>
