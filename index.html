@@ -1,0 +1,161 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>究極の記録ツール + ToDo拡張</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    #wrapper {
+      max-width: 1024px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    h2 {
+      padding: 1rem;
+      margin: 0;
+      text-align: center;
+      background: #fff;
+    }
+    #saveBar {
+      text-align: center;
+      padding: 0.5rem;
+      background: #e0f7fa;
+      font-size: 0.9rem;
+    }
+    #editor {
+      flex: 1;
+      margin: 0 auto;
+      width: 100%;
+      padding: 2rem;
+      background: white;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+      border: 1px solid #ccc;
+    }
+    .block {
+      margin: 0.5rem 0;
+    }
+    .block[contenteditable="true"]:focus {
+      outline: 2px solid #a29bfe;
+    }
+    .todo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .bullet {
+      padding-left: 1rem;
+    }
+    #bottomBar {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 6px 0;
+      border-top: 1px solid #ddd;
+      background: #fff;
+      width: 100%;
+    }
+    #bottomBar button {
+      background: none;
+      border: none;
+      font-size: 28px;
+      color: #7a7a7a;
+      cursor: pointer;
+    }
+    #bottomBar button:active {
+      color: #6c5ce7;
+    }
+    @media screen and (max-width: 600px) {
+      #wrapper {
+        max-width: 100%;
+      }
+      #editor {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="wrapper">
+    <h2>📝 究極の記録ツール</h2>
+    <div id="saveBar">編集内容はブラウザに保存されます</div>
+
+    <div id="editor">
+      <div class="block" contenteditable="true">ここにメモを書いてください…</div>
+    </div>
+
+    <div id="bottomBar">
+      <button onclick="saveMemo()" title="保存"><span class="material-icons-outlined">save</span></button>
+      <button onclick="addBlock()" title="メモ追加"><span class="material-icons-outlined">add</span></button>
+      <button onclick="addTodo()" title="ToDo追加"><span class="material-icons-outlined">check_box</span></button>
+      <button onclick="addBullet()" title="箇条書き追加"><span class="material-icons-outlined">format_list_bulleted</span></button>
+      <button onclick="clearMemo()" title="初期化"><span class="material-icons-outlined">delete</span></button>
+    </div>
+  </div>
+
+  <script>
+    function saveMemo() {
+      const content = document.getElementById('editor').innerHTML;
+      localStorage.setItem('memo', content);
+      showSaveBar("✅ 保存しました");
+    }
+
+    function loadMemo() {
+      const saved = localStorage.getItem('memo');
+      if (saved) {
+        document.getElementById('editor').innerHTML = saved;
+      }
+    }
+
+    function clearMemo() {
+      if (confirm("記録をすべて初期化しますか？")) {
+        localStorage.removeItem("memo");
+        document.getElementById("editor").innerHTML = '<div class="block" contenteditable="true">ここにメモを書いてください…</div>';
+        showSaveBar("🗑 初期化しました");
+      }
+    }
+
+    function addBlock() {
+      const blk = document.createElement("div");
+      blk.className = "block";
+      blk.contentEditable = true;
+      blk.innerText = "新しいブロック";
+      document.getElementById("editor").appendChild(blk);
+      blk.focus();
+    }
+
+    function addTodo() {
+      const div = document.createElement("div");
+      div.className = "block todo";
+      div.innerHTML = '<input type="checkbox"> <div contenteditable="true" style="flex:1;">ToDo タスク</div>';
+      document.getElementById("editor").appendChild(div);
+    }
+
+    function addBullet() {
+      const ul = document.createElement("ul");
+      ul.className = "block bullet";
+      ul.innerHTML = '<li contenteditable="true">箇条書き項目</li>';
+      document.getElementById("editor").appendChild(ul);
+    }
+
+    function showSaveBar(msg) {
+      const bar = document.getElementById("saveBar");
+      bar.textContent = msg;
+      setTimeout(() => {
+        bar.textContent = "編集内容はブラウザに保存されます";
+      }, 2000);
+    }
+
+    window.addEventListener("DOMContentLoaded", loadMemo);
+  </script>
+</body>
+</html>
